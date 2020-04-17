@@ -645,6 +645,7 @@ function chronoContinue(){
 	start = new Date(start)
 	chrono()
 }
+
 function chronoReset(){
 	document.getElementById("chronotime").value = "0:00:00:000"
 	start = new Date()
@@ -671,7 +672,7 @@ function stopGame() {
 		</script>
 
 		<form name="chronoForm">
-		  <input type="text" name="chronotime" id="chronotime" value="0:00:00:00"/>
+		  <input type="text" name="chronotime" id="chronotime" style="display=none;" value="0:00:00:00"/>
 		    <input type="button" name="startstop" value="start!" onClick="chronoStart()" />
 		    <input type="button" name="reset" value="reset!" onClick="chronoReset()" />
 		</form>
