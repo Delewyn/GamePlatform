@@ -553,6 +553,8 @@
                 //Deesin de la plateforme et du personnage
 				DrawPlat();
 				DrawCar();
+				window.onload = chronoStart;
+				startGame()
 			}
 
 			//Test de l'appui d'une flèche
@@ -607,6 +609,7 @@ var end = 0
 var diff = 0
 var timerID = 0
 window.onload = chronoStart;
+startGame()
 function chrono(){
 	end = new Date()
 	diff = end - start
@@ -672,9 +675,9 @@ function stopGame() {
 		</script>
 
 		<form name="chronoForm">
-		  <input type="text" name="chronotime" id="chronotime" style="display=none;" value="0:00:00:00"/>
-		    <input type="button" name="startstop" value="start!" onClick="chronoStart()" />
-		    <input type="button" name="reset" value="reset!" onClick="chronoReset()" />
+		  <input type="text" name="chronotime" id="chronotime" style="display:none;" value="0:00:00:00"/>
+		    <input style="display:none;" type="button" name="startstop" value="start!" onClick="chronoStart()" />
+		    <input style="display:none;" type="button" name="reset" value="reset!" onClick="chronoReset()" />
 		</form>
 
 	</body>
