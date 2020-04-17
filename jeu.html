@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>Plateform Game</title>
+		<style>
+			* { padding: 0; margin: 0; }
+			canvas { background: #eee; display: block; margin: 0 auto; }
+		</style>
+	</head>
+	<body>
+		<canvas id="myCanvas" width="880" height="360"></canvas>
+
+		<script>
+			//Initialisation canvas
+			var canvas = document.getElementById("myCanvas");
+			var ctx = canvas.getContext("2d");
+			//Initialisation touches
+			var rightPressed = false;
+			var leftPressed = false;
+            var upPressed = false;
+            var downPressed = false;
+			//Initialisation variables collisions
+			var BloqueDroit = false;
+			var BloqueGauche = false;
+			var BloqueHaut = false;
+            var BloqueBas = false;
+			//Initialisation variables à valeur prédefinis
+			var compteSaut = 0;
+			var coins = 0;
+			var life = 2;
+			var comptePiece = 0;
+			var niveau = 0;
+			//Initialisation variables de position
+			var pos;
+            var posH;
+			var posD;
+			var posHD;
+			var BlocX;
+			var BlocY;
+			//initialisation variable intervalle
+			var interv;
+			var intervJeu;
+			var ToucheEntree = false;
+			//Initialisation des variables relative au sélection du personnage
+			var tabC = new Array("red","blue","green","#FF8000","#DF01D7","#04B486","#F4FA58");
+			var PosCurseur = 1;
+			var PosCurseurB = 20;
+			var teteNbr = 0;
+			var couleur;
+
+			//Niveau du jeu
+			var tab = new Array([".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".","."],
+								[".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".","=","."],
+								[".",".","#",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".","#","#","#","#"],
+								[".",".","#",".",".",".",".",".",".",".",".",".","o",".","o",".",".",".","#",".",".","."],
+								[".",".","#","@",".",".",".",".",".",".",".","#","#","#","#","#",".",".","#",".",".","."],
+								[".",".","#","#","#","#","#",".",".",".",".",".",".",".",".",".",".",".","#",".",".","."],
+								[".",".",".",".",".",".","#","+","+","#","+","+","+","+","+","+","+","+","#",".",".","."],
+								[".",".",".",".",".",".","#","#","#","#","#","#","#","#","#","#","#","#","#",".",".","."],
+								[".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".","."],
+								[".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".","."]);
+
+			var tab1 = new Array([".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".","."],
+								[".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".","."],
+								[".",".",".",".",".",".",".",".",".",".","o",".",".",".",".",".",".",".",".",".",".","."],
+								[".",".",".",".",".",".",".",".",".",".","#",".",".",".",".",".",".",".",".",".",".","."],
+								[".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".","=",".","."],
+								[".","@",".",".",".",".","#","#",".",".",".",".",".",".",".",".",".","#","#","#",".","."],
+								[".","#","#",".",".",".",".",".","#",".",".",".",".",".",".",".",".","#",".",".",".","."],
+								[".",".",".",".",".",".",".",".",".","#","#","#",".",".","#","#",".","#",".",".",".","."],
+								["+","+","+","+","+","+","+","+","+","+","+","+","+","+","+","+","+","+","+","+","+","+"],
+								[".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".","."]);
+
+			var tab2 = new Array([".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".","."],
+								[".",".",".","#",".","#","#",".",".","#","#","#",".",".",".",".",".",".",".",".",".","."],
+								[".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".","."],
+								[".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".","."],
+								[".",".",".","#","#",".",".",".",".",".",".",".",".",".",".",".",".",".","=",".",".","."],
+								[".","@",".","#",".",".",".",".",".",".",".",".",".",".",".",".","#","#","#",".",".","."],
+								[".","#","#","#",".",".",".",".","o",".",".",".",".",".",".",".",".",".",".",".",".","."],
+								[".",".",".",".",".",".",".",".","#",".",".",".",".","#","#",".",".",".",".",".",".","."],
+								["+","+","+","+","+","+","+","+","+","+","+","+","+","+","+","+","+","+","+","+","+","+"],
+								[".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".","."]);
+
+			var tab3 = new Array([".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".","."],
+								[".",".",".",".",".",".","@",".",".",".",".",".",".",".",".",".",".",".",".",".",".","."],
+								[".","#","#","+","+","+","#","#",".",".",".",".",".",".",".",".",".",".",".",".",".","."],
+								[".",".","#","#","#","#","#","#","+","+","+","#","#",".",".",".",".",".",".",".",".","."],
+								[".",".",".",".",".",".",".","#","#","#","#","#","#","+",".","+","+","#",".",".",".","."],
+								[".",".",".",".",".",".",".",".",".",".",".",".","#","#",".","#","#","#",".",".",".","="],
+								[".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".","#","#"],
+								[".",".",".",".",".",".",".",".",".",".",".",".",".",".","o",".",".",".",".",".","#","."],
+								["+","+","+","+","+","+","+","+","+","+","+","+","+","+","#","#","#","+","+","#","#","+"],
+								[".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".","."]);
+
+			var tab4 = new Array([".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".","."],
+								[".","@",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".","."],
+								[".","#","#",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".","."],
+								[".",".",".","#","+","+","+","#",".",".","#","#","#","#","#","#",".",".",".",".","=","."],
+								[".",".",".",".","#","#","#","#",".",".",".",".",".",".",".",".",".",".","#","#","#","."],
+								[".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".",".","."],
+								[".",".",".",".",".","o",".","o",".",".",".",".",".",".",".",".",".",".",".",".",".","."],
+								[".","#",".",".",".",".",".",".",".",".",".","#","#","#",".",".",".",".",".",".",".","."],
+								["+","+","+","+","#","+","+","+","#","+","+","+","+","+","+","+","#","+","+","+","+","+"],
+								["+","+","+","+","+","+","+","+","+","+",".",".",".",".",".",".",".",".",".",".",".","."]);
+
+///////////////////////////////////////////////////////////////PARTIE MENU////////////////////////////////////////////////////
+
+
+			function Page()
+			{
+				//Background
+				ctx.beginPath();
+					ctx.rect(0,0,880,360);
+					ctx.fillStyle = "#2E9AFE";
+					ctx.fill();
+				ctx.closePath();
+
+				//Panneau des options
+				ctx.beginPath();
+					ctx.rect(15,25,90,130);
+					ctx.fillStyle = "#2E2E2E";
+					ctx.fill();
+				ctx.closePath();
+				ctx.beginPath()
+					ctx.rect(10,30,90,130);
+					ctx.fillStyle = "#585858";
+					ctx.fill();
+				ctx.closePath();
+				ctx.font = "18px Helvetica";
+				ctx.fillStyle = "#1861AF";
+				ctx.fillText("Platform Game", 150,30);
+				ctx.font = "9px Helvetica"
+				ctx.fillStyle = "black";
+				ctx.fillText("Option Personnage", 15,50);
+
+				//Titre de la partie "couleur"
+				if (PosCurseur == 1)
+					ctx.fillStyle = "yellow";
+				else
+					ctx.fillStyle = "black";
+				ctx.fillText("Couleur :", 20, 70);
+				//Sous-Partie du répertoire "couleur"
+				ctx.beginPath();
+					ctx.rect(15,80,10,10);
+					ctx.fillStyle = ""+tabC[0]+"";
+					ctx.fill();
+				ctx.closePath();
+				ctx.beginPath();
+					ctx.rect(27,80,10,10);
+					ctx.fillStyle = ""+tabC[1]+"";
+					ctx.fill();
+				ctx.closePath();
+				ctx.beginPath();
+					ctx.rect(39,80,10,10);
+					ctx.fillStyle = ""+tabC[2]+"";
+					ctx.fill();
+				ctx.closePath();
+				ctx.beginPath();
+					ctx.rect(51,80,10,10);
+					ctx.fillStyle = ""+tabC[3]+"";
+					ctx.fill();
+				ctx.closePath();
+				ctx.beginPath();
+					ctx.rect(63,80,10,10);
+					ctx.fillStyle = ""+tabC[4]+"";
+					ctx.fill();
+				ctx.closePath();
+				ctx.beginPath();
+					ctx.rect(75,80,10,10);
+					ctx.fillStyle = ""+tabC[5]+"";
+					ctx.fill();
+				ctx.closePath();
+				ctx.beginPath();
+					ctx.rect(87,80,10,10);
+					ctx.fillStyle = ""+tabC[6]+"";
+					ctx.fill();
+				ctx.closePath();
+
+				//Titre de la partie "tete"
+				if (PosCurseur == 0)
+					ctx.fillStyle = "yellow";
+				else
+					ctx.fillStyle = "black";
+				ctx.fillText("Tête :", 20, 110);
+
+				//Plateforme du personnage
+				ctx.beginPath();
+					ctx.moveTo(320,120);
+					ctx.lineTo(420,120);
+					ctx.lineTo(395,140);
+					ctx.lineTo(295,140);
+					ctx.lineTo(320,120);
+					ctx.fillStyle = "#585858";
+					ctx.fill();
+				ctx.closePath();
+				ctx.beginPath();
+					ctx.rect(295,140,100,20);
+					ctx.fillStyle = "#424242";
+					ctx.fill();
+				ctx.closePath();
+				ctx.beginPath();
+					ctx.moveTo(420,120);
+					ctx.lineTo(420,140);
+					ctx.lineTo(395,160);
+					ctx.lineTo(395,140);
+					ctx.lineTo(420,120);
+					ctx.fillStyle = "#2E2E2E";
+					ctx.fill();
+				ctx.closePath();
+
+				//Flèche de sélection
+				ctx.beginPath();
+					ctx.moveTo(PosCurseurB,90);
+					ctx.lineTo(PosCurseurB+3,100);
+					ctx.lineTo(PosCurseurB-3,100);
+					ctx.lineTo(PosCurseurB,90);
+					ctx.fillStyle = "red";
+					ctx.fill();
+				ctx.closePath();
+
+
+				ctx.beginPath();
+					ctx.rect(540,30,300,300);
+					ctx.fillStyle = "#424242";
+					ctx.fill();
+				ctx.closePath();
+				ctx.beginPath();
+					ctx.font = "15px Helvetica";
+					ctx.fillStyle = "Black";
+					ctx.fillText("Explications: ",550,50);
+					ctx.fillText("Dans ce menu vous avez la possibilité de",550,70);
+					ctx.fillText("personnaliser votre personnage en utilisant",550,90);
+					ctx.fillText("les flèches directionnels pour naviguer a",550,110)
+					ctx.fillText("l'intérieur de celui-ci.",550,130);
+					ctx.fillText("Une fois fait, appuyez sur entrée", 550, 155);
+				ctx.closePath();
+
+				//Dessin de l'apercu du perso
+				ctx.beginPath();
+					ctx.rect(340,90,40,40)
+					ctx.fillStyle = ""+tabC[(PosCurseurB-20)/12]+"";
+					var tete = new Image();
+					tete.src = "System/tete"+teteNbr+".png";
+					ctx.fill();
+					ctx.drawImage(tete,340,90);
+				ctx.closePath();
+
+				if (PosCurseur == 1)
+				{
+					if (downPressed)
+					{
+						PosCurseur--;
+						downPressed = false;
+					}
+					if (leftPressed)
+					{
+						if (PosCurseurB > 20)
+							PosCurseurB -= 12;
+						leftPressed = false;
+					}
+					if (rightPressed)
+					{
+						if (PosCurseurB < 92)
+							PosCurseurB += 12;
+						rightPressed = false;
+					}
+				}
+				if (PosCurseur == 0)
+				{
+					if (upPressed)
+					{
+						PosCurseur++;
+						upPressed = false;
+					}
+					if (leftPressed)
+					{
+						if (teteNbr > 0)
+							teteNbr--;
+						leftPressed = false;
+					}
+					if (rightPressed)
+					{
+						if (teteNbr < 24)
+							teteNbr++;
+						rightPressed = false;
+					}
+				}
+			}
+
+
+
+
+////////////////////////////////////////////////////////PARTIE JEU////////////////////////////////////////////////////////////
+
+
+			//Dessin du niveau sur le canvas
+			function DrawPlat()
+			{
+				for (var j = 0; j < 9; j++)
+				{
+					for (var i = 0; i < 22; i++)
+					{
+						if (tab[j][i] == ".")
+						{
+							ctx.beginPath();
+							ctx.rect(i*40, j*40, 40, 40);
+							ctx.fillStyle = "#2E9AFE";
+							ctx.fill();
+							//ctx.stroke();// Mode développeur !
+							ctx.closePath();
+						}
+						else if (tab[j][i] == "#")
+						{
+							ctx.beginPath();
+							ctx.rect(i*40, j*40, 40, 40);
+							ctx.fillStyle = "#585858";
+							ctx.fill();
+							ctx.closePath();
+						}
+						else if (tab[j][i] == "+")
+						{
+							ctx.beginPath();
+								var lave = new Image();
+								lave.src = "System/lave.png";
+								ctx.drawImage(lave, i*40, j*40);
+							ctx.closePath();
+							if (tab[j+1][i] == ".")
+								tab[j+1][i] = "+";
+						}
+						else if (tab[j][i] == "o")
+						{
+							comptePiece++;
+							tab[j][i] = "O";
+						}
+						else if (tab[j][i] == "O")
+						{
+							ctx.beginPath();
+								ctx.rect(i*40, j*40, 40, 40);
+								ctx.fillStyle = "#2E9AFE";
+								ctx.fill();
+							ctx.closePath();
+							ctx.beginPath();
+								ctx.arc(i*40+20, j*40+20, 12, 0, Math.PI*2);
+								ctx.fillStyle = "yellow";
+								ctx.fill();
+							ctx.closePath();
+						}
+						else if (tab[j][i] == "=")
+						{
+							var savei = i;
+							var savej = j;
+						}
+						else if (tab[j][i] == "@")
+						{
+							pos = i*40;
+							posH = j*40;
+							posD = pos;
+							posHD = posH;
+							BlocX = pos/40;
+							BlocY = posH/40;
+							tab[j][i] = ".";
+						}
+					}
+					i = 0;
+				}
+				/////////Dessin du fin de niveau, ecriture vie, pieces////////
+				ctx.beginPath();
+					ctx.rect(savei*40, savej*40, 40, 40);
+					ctx.fillStyle = "black";
+					ctx.fill();
+				ctx.closePath();
+				ctx.beginPath();
+					ctx.fillStyle = "black";
+					ctx.font = "15px Helvetica"
+					ctx.fillText("Pièces : ", 10, 175);
+					ctx.fillText(comptePiece, 70, 175);
+					ctx.fillText("Vie : ", 10, 195);
+					ctx.fillText(life, 70, 195);
+				ctx.closePath();
+                /*ctx.beginPath();//                                          \
+                    ctx.rect(BlocX*40, BlocY*40, 40, 40);//                   |----Mode Développeur !
+                    ctx.fillStyle = "green";             //                   |
+                    ctx.fill(); 						 // 			   |
+                ctx.closePath();					     //  				/
+				*/
+			}
+
+			///Dessin du Perso////
+			function DrawCar()
+			{
+				ctx.beginPath();
+					ctx.rect(pos, posH, 40, 40);
+					ctx.fillStyle = couleur;
+					ctx.fill();
+				ctx.closePath();
+				ctx.beginPath();
+					var tete = new Image();
+					tete.src = "System/tete"+teteNbr+".png";
+					ctx.fill();
+					ctx.drawImage(tete,pos,posH);
+				ctx.closePath();
+			}
+
+            //Quand le bolosse de joueur tombe dans la lave
+			function MortLave()
+			{
+				life--;
+				if (life < 0)
+				{
+                	//Lose();
+									if(alert("T'as perduuuu ! \n Appuie sur ok pour retourner au menu !")){}
+									else    window.location.reload();
+                    clearInterval(intervJeu);
+                }
+
+				else
+				{
+					alert("Meurt crétin !");
+					posH = posHD-20;
+					pos = posD;
+					BlocY = posHD/40;
+					BlocX = pos/40;
+					downPressed = false;
+					upPressed = false;
+					rightPressed = false;
+					leftPressed = false;
+				}
+			}
+
+			function Jeu()
+			{
+                //Test des collisions
+				if (tab[BlocY][BlocX+1] == "#")
+					BloqueDroit = true;
+				else
+					BloqueDroit = false;
+				if (tab[BlocY][BlocX-1] == "#")
+					BloqueGauche = true;
+				else
+					BloqueGauche = false;
+				if (tab[BlocY+1][BlocX] == "#")
+                {
+                    compteSaut = 0;
+					BloqueBas = true;
+				}
+                else
+					BloqueBas = false;
+				if (tab[BlocY-1][BlocX] == "#")
+					BloqueHaut = true;
+				else
+					BloqueHaut = false;
+
+				//Lave
+                if (tab[BlocY+1][BlocX] == "+")
+                {
+                    if ((pos/39 > BlocX && tab[BlocY+1][BlocX+1] != "#") && posH/39 >= BlocY)
+                        MortLave();
+                    if ((pos/39 < BlocX && tab[BlocY+1][BlocX-1] != "#") && posH/39 >= BlocY)
+                        MortLave();
+                }
+				if (pos/39 > BlocX && tab[BlocY][BlocX+1] == "+")
+					MortLave();
+				if (pos/39 < BlocX && tab[BlocY][BlocX-1] == "+")
+					MortLave();
+                //Pièces
+                if (tab[BlocY][BlocX] == "O")
+                {
+                    tab[BlocY][BlocX] = ".";
+                    coins++;
+                }
+                //Fin de niveau
+                if (tab[BlocY][BlocX] == "=" && coins == comptePiece)
+				{
+					tab[BlocY][BlocX] = ".";
+                    niveau++;
+					if (niveau != 5)
+						setTimeout("tab = tab"+niveau+"",1);
+					else
+					{
+						if(alert("T'as gagnéeeee !\n Bien joué ! \n Appuie sur ok pour retourner au menu !")){}
+						else    window.location.reload();
+							clearInterval(intervJeu);
+						//Win();
+					}
+				}
+                //Résolution des bugs de saut
+                if (pos/40 > BlocX && tab[BlocY+1][BlocX+1] == "#")
+                    BloqueBas = true;
+                if (pos/40 < BlocX && tab[BlocY+1][BlocX-1] == "#")
+                    BloqueBas = true;
+				if (pos/40 > BlocX && tab[BlocY-1][BlocX+1] == "#")
+					BloqueHaut = true;
+				if (pos/40 < BlocX && tab[BlocY-1][BlocX-1] == "#")
+					BloqueHaut = true;
+				if (posH/40 < BlocY && pos/40 == BlocX && tab[BlocY-1][BlocX+1] == "#")
+					BloqueDroit = true;
+				if (posH/40 < BlocY && pos/40 == BlocX && tab[BlocY-1][BlocX-1] == "#")
+					BloqueGauche = true;
+
+                //Résolution des bugs de collision en déplacement
+                if (posH/40 < BlocY && tab[BlocY][BlocX] != "#")
+					BloqueBas = false;
+                if (pos/40 > BlocX && BloqueGauche)
+                    BloqueGauche = false;
+                if (pos/40 < BlocX && BloqueDroit)
+                    BloqueDroit = false;
+                if (posH/40 > BlocY && pos/40 == BlocX && tab[BlocY+1][BlocX+1] == "#")
+                    BloqueDroit = true;
+                if (posH/40 > BlocY && pos/40 == BlocX && tab[BlocY+1][BlocX-1] == "#")
+                    BloqueGauche = true;
+
+                //Gestion des déplacement avec les flèches
+				if (rightPressed && !BloqueDroit)
+				{
+					if (pos < 840)
+						pos++;
+                }
+				if (leftPressed && !BloqueGauche)
+                {
+                    if (pos > 0)
+						pos--;
+                }
+				if(upPressed && !BloqueHaut)
+                {
+					if (compteSaut != 1)
+					{
+						if (posH > 1)
+							posH--;
+					}
+                }
+				else
+				{
+					if (BloqueHaut)
+					{
+						BlocY++;
+						BloqueHaut = false;
+					}
+                    if (!BloqueBas)
+					{
+                        posH++;
+                    }
+                }
+
+
+				//Gestion du déplacement dans le tableau
+				if (pos%40 == 0)
+					BlocX = pos/40;
+				if (posH%40 == 0)
+					BlocY = posH/40;
+
+                //Deesin de la plateforme et du personnage
+				DrawPlat();
+				DrawCar();
+			}
+
+			//Test de l'appui d'une flèche
+			function keyDownHandler(e)
+			{
+				if (e.keyCode == 39)
+					rightPressed = true;
+				else if (e.keyCode == 37)
+					leftPressed = true;
+                else if (e.keyCode == 38)
+                {
+					if (compteSaut != 1)
+					{
+						upPressed = true;
+						setTimeout("compteSaut=1; upPressed = false;",450);
+					}
+				}
+				else if (e.keyCode == 40)
+					downPressed = true;
+				else if (e.keyCode == 13 && !ToucheEntree)
+				{
+					ToucheEntree = true;
+					couleur = tabC[(PosCurseurB-20)/12];
+					clearInterval(interv);
+					DrawPlat();
+					intervJeu = setInterval(Jeu,5);
+				}
+			}
+			//Test du relachement d'une flèche
+			function keyUpHandler(e)
+			{
+				if(e.keyCode == 39)
+					rightPressed = false;
+				else if(e.keyCode == 37)
+					leftPressed = false;
+                else if (e.keyCode == 38)
+				{
+					compteSaut = 0;
+					upPressed = false;
+                }
+				else if (e.keyCode == 40)
+					downPressed = false;
+			}
+
+			document.addEventListener("keydown", keyDownHandler, false);
+			document.addEventListener("keyup", keyUpHandler, false);
+			interv = setInterval(Page, 10);
+
+			var startTime = 0
+var start = 0
+var end = 0
+var diff = 0
+var timerID = 0
+window.onload = chronoStart;
+function chrono(){
+	end = new Date()
+	diff = end - start
+	diff = new Date(diff)
+	var msec = diff.getMilliseconds()
+	var sec = diff.getSeconds()
+	var min = diff.getMinutes()
+	var hr = diff.getHours()-1
+	if (min < 10){
+		min = "0" + min
+	}
+	if (sec < 10){
+		sec = "0" + sec
+	}
+	if(msec < 10){
+		msec = "00" +msec
+	}
+	else if(msec < 100){
+		msec = "0" +msec
+	}
+	document.getElementById("chronotime").value = hr + ":" + min + ":" + sec + ":" + msec
+	timerID = setTimeout("chrono()", 10)
+}
+function chronoStart(){
+	document.chronoForm.startstop.value = "stop!"
+	document.chronoForm.startstop.onclick = chronoStop
+	document.chronoForm.reset.onclick = chronoReset
+	start = new Date()
+	chrono()
+}
+function chronoContinue(){
+	document.chronoForm.startstop.value = "stop!"
+	document.chronoForm.startstop.onclick = chronoStop
+	document.chronoForm.reset.onclick = chronoReset
+	start = new Date()-diff
+	start = new Date(start)
+	chrono()
+}
+function chronoReset(){
+	document.getElementById("chronotime").value = "0:00:00:000"
+	start = new Date()
+}
+function chronoStopReset(){
+	document.getElementById("chronotime").value = "0:00:00:000"
+	document.chronoForm.startstop.onclick = chronoStart
+}
+function chronoStop(){
+	document.chronoForm.startstop.value = "start!"
+	document.chronoForm.startstop.onclick = chronoContinue
+	document.chronoForm.reset.onclick = chronoStopReset
+	clearTimeout(timerID)
+}
+
+function startGame(){
+	document.getElementById("chronotime").style.display ="block"
+}
+
+function stopGame() {
+	document.getElementById("chronotime").style.display ="none"
+}
+
+		</script>
+
+		<form name="chronoForm">
+		  <input type="text" name="chronotime" id="chronotime" value="0:00:00:00"/>
+		    <input type="button" name="startstop" value="start!" onClick="chronoStart()" />
+		    <input type="button" name="reset" value="reset!" onClick="chronoReset()" />
+		</form>
+
+	</body>
+</html>
