@@ -553,13 +553,16 @@
                 //Deesin de la plateforme et du personnage
 				DrawPlat();
 				DrawCar();
-				window.onload = chronoStart;
-				startGame()
+
 			}
 
 			//Test de l'appui d'une flèche
 			function keyDownHandler(e)
 			{
+				if (e.keyCode == 13) {
+					chronoStart();
+					startGame()
+				}
 				if (e.keyCode == 39)
 					rightPressed = true;
 				else if (e.keyCode == 37)
@@ -608,8 +611,8 @@ var start = 0
 var end = 0
 var diff = 0
 var timerID = 0
-window.onload = chronoStart;
-startGame()
+//window.onload = chronoStart;
+//startGame()
 function chrono(){
 	end = new Date()
 	diff = end - start
